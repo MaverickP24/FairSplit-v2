@@ -78,16 +78,21 @@ def _find_swap_partner(
     target: Student,           # student we want to move to dest_section
     dest_section: Section,     # where we want to place target
     src_section: Section,      # target's current section
+    pair_partner: Optional[Student] = None,  # the other student in the preference pair — exclude from candidates
 ) -> Optional[Student]:
     """
     Find the best swap partner in dest_section for target.
     Must share the same tier and pass all constraint checks.
+    Excludes pair_partner (if given) so we don't do a no-op swap
+    that just trades positions between two students trying to be together.
     Prefers the candidate with the fewest friends in their current section
     (least disruption).
     """
     candidates = [
         s for s in dest_section.members
-        if s.tier == target.tier and _can_swap(target, s, src_section, dest_section)
+        if s.tier == target.tier
+        and (pair_partner is None or s.enrollment != pair_partner.enrollment)
+        and _can_swap(target, s, src_section, dest_section)
     ]
     if not candidates:
         return None
@@ -168,14 +173,14 @@ def _run_single_friendship_pass(
             continue
 
         # Try: move student_b into sec_a
-        partner = _find_swap_partner(student_b, sec_a, sec_b)
+        partner = _find_swap_partner(student_b, sec_a, sec_b, pair_partner=student_a)
         if partner is not None:
             _execute_swap(student_b, partner, sec_b, sec_a)
             swaps_made += 1
             continue
 
         # Try: move student_a into sec_b (symmetric)
-        partner = _find_swap_partner(student_a, sec_b, sec_a)
+        partner = _find_swap_partner(student_a, sec_b, sec_a, pair_partner=student_b)
         if partner is not None:
             _execute_swap(student_a, partner, sec_a, sec_b)
             swaps_made += 1

@@ -50,8 +50,8 @@ export const api = {
 
 // Dev helpers
 export const devApi = {
-  generateRandomSurveys: (seed = 42) =>
-    request(`/survey/random?seed=${seed}`, { method: "POST" }),
-  loadDummy: (n = 576, seed = 42) =>
-    request(`/dummy?n=${n}&seed=${seed}`, { method: "POST" }),
+  generateRandomSurveys: (seed) =>
+    request(`/survey/random?seed=${seed ?? Date.now()}`, { method: "POST" }),
+  loadDummy: (n = 576, seed) =>
+    request(`/dummy?n=${n}&seed=${seed ?? Date.now()}`, { method: "POST" }),
 };

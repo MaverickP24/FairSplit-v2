@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { api } from "../api/client";
-import { Card, Alert, Btn, Badge, Skeleton, SECTION_PALETTE } from "../components/ui";
+import { Card, Alert, Btn, Badge, Skeleton, SECTION_PALETTE, InfoTip } from "../components/ui";
 
 function exportSectionsExcel(sections) {
-  // Build CSV with sections as separate blocks
   let csv = "Section,Rank,Tier,Rank Points,Enrollment,Name,CGPA\n";
   for (const sec of sections) {
     const sorted = [...sec.members].sort((a,b)=>a.rank-b.rank);
@@ -68,22 +67,34 @@ function SectionCard({ section }) {
 function RankBalanceBar({ sections }) {
   if (!sections?.length) return null;
   const max = Math.max(...sections.map(s=>s.total_rank_points));
+  const min = Math.min(...sections.map(s=>s.total_rank_points));
+  const floor = min * 0.995;
   return (
-    <div style={{display:"flex",gap:4,alignItems:"flex-end",height:60,marginTop:8}}>
+    <div style={{display:"flex",gap:16,alignItems:"flex-end",height:100,padding:"0 12px"}}>
       {sections.map(s => {
         const pal = SECTION_PALETTE[s.name]||SECTION_PALETTE.A;
-        const h = Math.round((s.total_rank_points/max)*56);
+        const ratio = max === floor ? 1 : (s.total_rank_points - floor) / (max - floor);
+        const h = Math.max(28, Math.round(ratio * 80));
         return (
-          <div key={s.name} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:3}}>
-            <span style={{fontSize:10,color:"var(--color-text-tertiary)"}}>{s.total_rank_points}</span>
-            <div style={{width:"100%",height:h,background:pal.bar,borderRadius:"3px 3px 0 0"}}/>
-            <span style={{fontSize:11,fontWeight:500,color:pal.text}}>{s.name}</span>
+          <div key={s.name} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:6}}>
+            <span style={{fontSize:12,fontWeight:600,color:"var(--color-text-secondary)",
+              whiteSpace:"nowrap"}}>{s.total_rank_points}</span>
+            <div style={{width:"100%",height:h,background:pal.bar,borderRadius:"6px 6px 0 0",
+              transition:"height 0.4s ease"}}/>
           </div>
         );
       })}
     </div>
   );
 }
+
+const STAT_TIPS = {
+  "Swaps made": "Total number of student swaps the optimizer performed to co-place friends. Each swap moves two same-tier students between sections without breaking any hard constraints.",
+  "Pairs evaluated": "Total mutual friend pairs the optimizer considered. A pair is two students who both listed each other as preferred friends.",
+  "Already together": "Friend pairs that were already in the same section after the initial snake-draft, before any optimization swaps were needed.",
+  "Rank delta": "The maximum difference in total rank points between any two sections. 0 pts means all sections have exactly equal academic strength. This is always 0 because the optimizer only swaps students within the same tier (equal rank points), so section totals never change.",
+  "Rank point totals": "Sum of all rank points assigned to students in each section. Equal totals mean every section has the same overall academic strength — the core guarantee of FairSplit.",
+};
 
 export default function SimulationPage() {
   const [mode,setMode]     = useState("balanced");
@@ -107,7 +118,6 @@ export default function SimulationPage() {
   };
 
   const stats = result?.optimizer_stats || {};
-  const allExpand = () => {}; // handled per card
 
   return (
     <div style={{padding:"28px 24px",maxWidth:920,margin:"0 auto"}}>
@@ -147,7 +157,6 @@ export default function SimulationPage() {
 
       {error && <Alert type="error">{error}</Alert>}
 
-      {/* Loading skeleton */}
       {loadingPrev && !result && (
         <Card><Skeleton height={20} width="40%" style={{marginBottom:12}}/><Skeleton height={14} width="60%"/></Card>
       )}
@@ -160,42 +169,53 @@ export default function SimulationPage() {
 
       {result && !loading && (
         <>
-          {/* Summary stats */}
+          {/* Summary stats with info tooltips */}
           <div style={{display:"flex",gap:10,flexWrap:"wrap",marginBottom:20}}>
             {[
-              {l:"Swaps made",    v:stats.swaps_made},
+              {l:"Swaps made",     v:stats.swaps_made},
               {l:"Pairs evaluated",v:stats.pairs_evaluated},
               {l:"Already together",v:stats.already_together},
-              {l:"Rank delta",    v:"0 pts"},
+              {l:"Rank delta",     v:"0 pts"},
             ].map(({l,v})=>(
               <div key={l} style={{flex:"1 1 140px",background:"var(--color-background-secondary)",
-                border:"1px solid var(--color-border-tertiary)",borderRadius:10,padding:"12px 16px"}}>
+                border:"1px solid var(--color-border-tertiary)",borderRadius:10,padding:"14px 16px"}}>
                 <div style={{fontSize:22,fontWeight:500}}>{v}</div>
-                <div style={{fontSize:12,color:"var(--color-text-secondary)",marginTop:2}}>{l}</div>
+                <div style={{fontSize:12,color:"var(--color-text-secondary)",marginTop:4,
+                  display:"flex",alignItems:"center"}}>
+                  {l}<InfoTip text={STAT_TIPS[l]}/>
+                </div>
               </div>
             ))}
           </div>
 
-          {/* Rank balance bar chart */}
-          <Card style={{marginBottom:20}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <div>
-                <div style={{fontWeight:500,fontSize:14}}>Rank point totals</div>
-                <div style={{fontSize:12,color:"var(--color-text-secondary)",marginTop:2}}>
-                  All sections: {result.sections?.[0]?.total_rank_points} pts each
-                  <span style={{color:"var(--color-text-success)",marginLeft:8}}>— perfectly balanced</span>
-                </div>
+          {/* Rank balance bar chart — fixed padding */}
+          <Card style={{marginBottom:20,padding:"20px 20px 16px"}}>
+            <div style={{marginBottom:12}}>
+              <div style={{fontWeight:500,fontSize:15,display:"flex",alignItems:"center"}}>
+                Rank point totals
+                <InfoTip text={STAT_TIPS["Rank point totals"]}/>
               </div>
-              <div style={{display:"flex",gap:8}}>
-                {result.sections?.map(s=>(
-                  <div key={s.name} style={{textAlign:"center"}}>
-                    <div style={{fontSize:11,color:"var(--color-text-tertiary)"}}>{s.size}</div>
-                    <div style={{fontSize:12,fontWeight:500}}>Sec {s.name}</div>
-                  </div>
-                ))}
+              <div style={{fontSize:12,color:"var(--color-text-secondary)",marginTop:4}}>
+                All sections: <strong>{result.sections?.[0]?.total_rank_points}</strong> pts each
+                <span style={{color:"#1D9E75",marginLeft:8,fontWeight:500}}>✓ perfectly balanced</span>
               </div>
             </div>
             <RankBalanceBar sections={result.sections}/>
+            {/* Section legend row */}
+            <div style={{display:"flex",gap:8,marginTop:14,padding:"14px 12px 0",
+              borderTop:"1px solid var(--color-border-tertiary)"}}>
+              {result.sections?.map(s=>{
+                const pal = SECTION_PALETTE[s.name]||SECTION_PALETTE.A;
+                return (
+                  <div key={s.name} style={{flex:1,display:"flex",alignItems:"center",
+                    justifyContent:"center",gap:8,padding:"4px 0"}}>
+                    <div style={{width:10,height:10,borderRadius:"50%",background:pal.bar,flexShrink:0}}/>
+                    <span style={{fontSize:12,fontWeight:500}}>Sec {s.name}</span>
+                    <span style={{fontSize:11,color:"var(--color-text-tertiary)"}}>{s.size} students</span>
+                  </div>
+                );
+              })}
+            </div>
           </Card>
 
           {/* Section cards */}

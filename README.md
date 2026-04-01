@@ -149,24 +149,44 @@ fairsplit/
 
 ### Backend
 
-```bash
-cd fairsplit/backend
-pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
-```
+1. **Navigate to the backend directory and set up a virtual environment:**
+   ```bash
+   cd backend
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
 
-API runs at: http://localhost:8000
-Interactive API docs: http://localhost:8000/docs
+2. **Install dependencies:**
+   ```bash
+   pip install --upgrade pip setuptools wheel
+   pip install -r requirements.txt
+   ```
+
+3. **Run the server from the project root:**
+   *(Navigate back to the root if you are in the `backend` directory)*
+   ```bash
+   cd ..
+   source backend/venv/bin/activate
+   uvicorn backend.main:app --reload --port 8000
+   ```
+
+- **API runs at:** http://localhost:8000
+- **Interactive API docs:** http://localhost:8000/docs
 
 ### Frontend
 
-```bash
-cd fairsplit/frontend
-npm install
-npm run dev
-```
+1. **Navigate to the frontend directory:**
+   ```bash
+   cd frontend
+   ```
 
-Frontend runs at: http://localhost:5173
+2. **Install dependencies and start the dev server:**
+   ```bash
+   npm install
+   npm run dev
+   ```
+
+- **Frontend runs at:** http://localhost:5173
 
 ---
 

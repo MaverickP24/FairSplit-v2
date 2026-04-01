@@ -44,21 +44,16 @@ def snake_draft(students: List[Student]) -> List[Section]:
 
     full_count = (len(students) // NUM_SECTIONS) * NUM_SECTIONS
     full_students = students[:full_count]
-    partial_students = students[full_count:]   # 0-4 students
+    partial_students = students[full_count:]   
 
-    # ── Full tiers: snake draft ──
     for tier_idx in range(len(full_students) // NUM_SECTIONS):
         tier_students = full_students[tier_idx * NUM_SECTIONS: (tier_idx + 1) * NUM_SECTIONS]
         if tier_idx % 2 == 0:
-            order = list(range(NUM_SECTIONS))               # 0,1,2,3,4
+            order = list(range(NUM_SECTIONS))               
         else:
-            order = list(range(NUM_SECTIONS - 1, -1, -1))  # 4,3,2,1,0
+            order = list(range(NUM_SECTIONS - 1, -1, -1)) 
         for student, section_idx in zip(tier_students, order):
             sections[section_idx].add(student)
-
-    # ── Partial tier: greedy rank-point balancing ──
-    # Assign each partial student to the section with lowest total rank_points.
-    # Tiebreak: lowest section index (deterministic).
     for student in partial_students:
         target = min(
             sections,

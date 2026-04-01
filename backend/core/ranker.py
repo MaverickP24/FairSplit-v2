@@ -14,10 +14,17 @@ from ..models.student import Student
 def assign_ranks(students):
     sorted_students = sorted(students, key=lambda s: (-s.cgpa, s.enrollment))
 
+    num_full_tiers = len(sorted_students) // 5
     for idx, student in enumerate(sorted_students):
         rank = idx + 1
         tier = (idx // 5) + 1
-        rank_points = 200.0 - (tier - 1)
+        
+        # Partial tier (beyond last full multiple of 5) gets 0 points
+        if tier > num_full_tiers:
+            rank_points = 0.0
+        else:
+            rank_points = 200.0 - (tier - 1)
+            
         student.rank = rank
         student.tier = tier
         student.rank_points = rank_points

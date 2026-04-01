@@ -1,4 +1,5 @@
 // Shared UI primitives used across all pages
+import { useState } from "react";
 
 export function Card({ children, style = {} }) {
   return (
@@ -132,3 +133,54 @@ export const SECTION_PALETTE = {
   D: { bg: "#FAECE7", text: "#712B13", border: "#F0997B", bar: "#D85A30" },
   E: { bg: "#FBEAF0", text: "#72243E", border: "#ED93B1", bar: "#D4537E" },
 };
+
+export function InfoTip({ text }) {
+  const [show, setShow] = useState(false);
+  return (
+    <span
+      style={{ position: "relative", display: "inline-flex", alignItems: "center", marginLeft: 5 }}
+      onMouseEnter={() => setShow(true)}
+      onMouseLeave={() => setShow(false)}
+    >
+      <span
+        style={{
+          width: 16, height: 16, borderRadius: "50%",
+          background: "var(--color-border-secondary)",
+          color: "var(--color-text-secondary)",
+          fontSize: 10, fontWeight: 700, lineHeight: "16px",
+          textAlign: "center", cursor: "help",
+          display: "inline-block", userSelect: "none",
+          transition: "background .15s, color .15s",
+          ...(show ? { background: "#1D9E75", color: "#fff" } : {}),
+        }}
+      >
+        i
+      </span>
+      {show && (
+        <span
+          style={{
+            position: "absolute", bottom: "calc(100% + 8px)", left: "50%",
+            transform: "translateX(-50%)",
+            background: "#1a1a18", color: "#e8e6df",
+            fontSize: 12, lineHeight: 1.5, fontWeight: 400,
+            padding: "10px 14px", borderRadius: 10,
+            width: 260, whiteSpace: "normal",
+            boxShadow: "0 8px 24px rgba(0,0,0,.35)",
+            zIndex: 100, pointerEvents: "none",
+            border: "1px solid var(--color-border-secondary)",
+          }}
+        >
+          {text}
+          <span style={{
+            position: "absolute", top: "100%", left: "50%",
+            transform: "translateX(-50%)",
+            width: 0, height: 0,
+            borderLeft: "6px solid transparent",
+            borderRight: "6px solid transparent",
+            borderTop: "6px solid #1a1a18",
+          }} />
+        </span>
+      )}
+    </span>
+  );
+}

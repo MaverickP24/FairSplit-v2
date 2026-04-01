@@ -19,6 +19,16 @@ class SurveySubmission(BaseModel):
         for enr, priority in v.items():
             if not (1 <= priority <= 10):
                 raise ValueError(f"Priority for {enr} must be between 1 and 10")
+        # Ensure each priority is used at most once
+        priorities = list(v.values())
+        if len(priorities) != len(set(priorities)):
+            seen = {}
+            for enr, p in v.items():
+                if p in seen:
+                    raise ValueError(
+                        f"Duplicate priority {p}: used by both {seen[p]} and {enr}. Each priority must be unique."
+                    )
+                seen[p] = enr
         return v
 
 

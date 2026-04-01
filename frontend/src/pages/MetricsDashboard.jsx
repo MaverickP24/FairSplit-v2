@@ -1,6 +1,14 @@
 import { useState, useEffect } from "react";
 import { api } from "../api/client";
-import { Card, Alert, Btn, Skeleton, SECTION_PALETTE } from "../components/ui";
+import { Card, Alert, Btn, Skeleton, SECTION_PALETTE, InfoTip } from "../components/ui";
+
+const METRIC_TIPS = {
+  "Satisfaction score": "A weighted percentage of how many friend preferences were satisfied. Priority 1 friends carry 10x the weight of Priority 10 friends.",
+  "At-least-1 friend": "Percentage of students placed with at least one preferred friend. This is the inverse of the isolation rate.",
+  "Isolation rate": "Percentage of students who ended up with zero preferred friends in their section. Lower is better.",
+  "Avg friends": "The average count of co-placed preferred friends per student.",
+  "Rank point balance": "The maximum difference in total rank points between any two sections. FairSplit's snake-draft guarantees this stays at 0.",
+};
 
 function CompareBar({ label, value, baseline, unit="%", higherIsBetter=true }) {
   const diff = baseline !== undefined ? (value - baseline) : null;
@@ -11,7 +19,10 @@ function CompareBar({ label, value, baseline, unit="%", higherIsBetter=true }) {
   return (
     <div style={{marginBottom:18}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:4}}>
-        <span style={{fontSize:13,fontWeight:500}}>{label}</span>
+        <span style={{fontSize:13,fontWeight:500,display:"flex",alignItems:"center"}}>
+          {label}
+          <InfoTip text={METRIC_TIPS[label] || ""}/>
+        </span>
         <div style={{display:"flex",gap:10,alignItems:"center"}}>
           {diff !== null && (
             <span style={{fontSize:12,color:improved?"var(--color-text-success)":worse?"var(--color-text-danger)":"var(--color-text-secondary)"}}>
@@ -109,7 +120,10 @@ export default function MetricsDashboard() {
             ].map(({l,v,u,desc})=>(
               <div key={l} style={{flex:"1 1 150px",background:"var(--color-background-secondary)",
                 border:"1px solid var(--color-border-tertiary)",borderRadius:12,padding:"16px 18px"}}>
-                <div style={{fontSize:11,color:"var(--color-text-tertiary)",textTransform:"uppercase",letterSpacing:".04em",marginBottom:6}}>{l}</div>
+                <div style={{fontSize:11,color:"var(--color-text-tertiary)",textTransform:"uppercase",letterSpacing:".04em",marginBottom:6,
+                  display:"flex",alignItems:"center"}}>
+                  {l}<InfoTip text={METRIC_TIPS[l]}/>
+                </div>
                 <div style={{fontSize:28,fontWeight:500,letterSpacing:-.5}}>{v}<span style={{fontSize:13,fontWeight:400,color:"var(--color-text-secondary)"}}>{u}</span></div>
                 <div style={{fontSize:12,color:"var(--color-text-secondary)",marginTop:4}}>{desc}</div>
               </div>
@@ -129,7 +143,10 @@ export default function MetricsDashboard() {
           <Card style={{marginBottom:16}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
               <div>
-                <div style={{fontWeight:500,fontSize:14}}>Rank point balance</div>
+                <div style={{fontWeight:500,fontSize:14,display:"flex",alignItems:"center"}}>
+                  Rank point balance
+                  <InfoTip text={METRIC_TIPS["Rank point balance"]}/>
+                </div>
                 <div style={{fontSize:12,color:"var(--color-text-secondary)",marginTop:2}}>
                   Max delta across sections: {metrics.balance_score} pts
                   {metrics.balance_score===0 && <span style={{color:"var(--color-text-success)",marginLeft:8}}>— perfect</span>}

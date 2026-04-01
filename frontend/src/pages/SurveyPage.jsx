@@ -3,8 +3,9 @@ import { api, devApi } from "../api/client";
 import { Card, Alert, Btn, Badge, Skeleton } from "../components/ui";
 
 // Searchable friend picker row
-function FriendRow({ index, value, priority, onEnrollment, onPriority, allStudents, selfEnrollment }) {
-  const [query,setQuery]     = useState(value?.name || "");
+function FriendRow({ index, onEnrollment, allStudents, selfEnrollment }) {
+  const [query,setQuery]     = useState("");
+  const [selected,setSelected] = useState(null);
   const [open,setOpen]       = useState(false);
   const [results,setResults] = useState([]);
   const ref = useRef();
@@ -17,6 +18,7 @@ function FriendRow({ index, value, priority, onEnrollment, onPriority, allStuden
 
   const search = (q) => {
     setQuery(q);
+    setSelected(null);
     if (!q.trim()) { setResults([]); setOpen(false); return; }
     const lower = q.toLowerCase();
     const hits = allStudents
@@ -30,26 +32,30 @@ function FriendRow({ index, value, priority, onEnrollment, onPriority, allStuden
 
   const select = (student) => {
     setQuery(student.name);
+    setSelected(student);
     setOpen(false);
     onEnrollment(student.enrollment, student.name);
   };
 
   const clear = () => {
     setQuery("");
+    setSelected(null);
     setResults([]);
     onEnrollment("", "");
   };
 
   return (
     <div style={{display:"flex",gap:10,alignItems:"center"}}>
-      <span style={{width:22,textAlign:"right",fontSize:13,color:"var(--color-text-tertiary)",flexShrink:0}}>{index}.</span>
+      <span style={{minWidth:28,textAlign:"center",fontSize:12,fontWeight:600,
+        color:"var(--color-text-on-primary)",background:"var(--color-primary)",
+        borderRadius:6,padding:"4px 0",flexShrink:0}}>P{index}</span>
       <div ref={ref} style={{flex:1,position:"relative"}}>
         <div style={{display:"flex",alignItems:"center",gap:4}}>
           <input
             value={query}
             onChange={e => search(e.target.value)}
             onFocus={() => { if (results.length) setOpen(true); }}
-            placeholder="Search by name or enrollment…"
+            placeholder={`Priority ${index} friend — search by name or enrollment…`}
             style={{flex:1,padding:"7px 12px",borderRadius:8,
               border:"1px solid var(--color-border-secondary)",fontSize:13,
               background:"var(--color-background-primary)",color:"var(--color-text-primary)"}}
@@ -77,13 +83,6 @@ function FriendRow({ index, value, priority, onEnrollment, onPriority, allStuden
           </div>
         )}
       </div>
-      <select value={priority} onChange={e=>onPriority(Number(e.target.value))}
-        style={{padding:"7px 10px",borderRadius:8,border:"1px solid var(--color-border-secondary)",
-          fontSize:13,background:"var(--color-background-primary)",color:"var(--color-text-primary)",width:110}}>
-        {Array.from({length:10},(_,i)=>i+1).map(n=>(
-          <option key={n} value={n}>Priority {n}</option>
-        ))}
-      </select>
     </div>
   );
 }
@@ -97,7 +96,7 @@ export default function SurveyPage() {
   const [loadingStudents,setLoadingStudents] = useState(false);
 
   // prefs: array of {enrollment, name, priority}
-  const [prefs,setPrefs] = useState(Array(10).fill(null).map(()=>({enrollment:"",name:"",priority:1})));
+  const [prefs,setPrefs] = useState(Array(10).fill(null).map(()=>({enrollment:"",name:""})));
   const [submitting,setSubmitting]   = useState(false);
   const [submitted,setSubmitted]     = useState(false);
   const [submitError,setSubmitError] = useState("");
@@ -127,16 +126,13 @@ export default function SurveyPage() {
   const updateEnrollment = (idx, enr, name) => {
     setPrefs(p => p.map((x,i) => i===idx ? {...x,enrollment:enr,name} : x));
   };
-  const updatePriority = (idx, val) => {
-    setPrefs(p => p.map((x,i) => i===idx ? {...x,priority:val} : x));
-  };
 
   const handleSubmit = async () => {
     const preferences = {};
-    for (const p of prefs) {
+    prefs.forEach((p, idx) => {
       if (p.enrollment && p.enrollment !== enrollment)
-        preferences[p.enrollment] = p.priority;
-    }
+        preferences[p.enrollment] = idx + 1; // row position = priority
+    });
     if (!Object.keys(preferences).length) {
       setSubmitError("Add at least one friend preference."); return;
     }
@@ -154,7 +150,7 @@ export default function SurveyPage() {
   const handleGenerateRandom = async () => {
     setGenLoading(true); setGenResult(null);
     try {
-      const r = await devApi.generateRandomSurveys(42);
+      const r = await devApi.generateRandomSurveys();
       setGenResult(r);
       const status = await api.getSurveyStatus();
       setSurveyStatus(status);
@@ -260,10 +256,7 @@ export default function SurveyPage() {
               <FriendRow
                 key={idx}
                 index={idx+1}
-                value={pref}
-                priority={pref.priority}
                 onEnrollment={(enr,name) => updateEnrollment(idx,enr,name)}
-                onPriority={(val) => updatePriority(idx,val)}
                 allStudents={allStudents}
                 selfEnrollment={enrollment}
               />

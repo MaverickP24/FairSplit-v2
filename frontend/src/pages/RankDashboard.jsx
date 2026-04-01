@@ -54,7 +54,7 @@ export default function RankDashboard() {
   const handleDummy = async () => {
     setDummy(true); setError(""); setSuccess("");
     try {
-      const r = await devApi.loadDummy(576,42);
+      const r = await devApi.loadDummy(576);
       const d = await api.getStudents();
       setStudents(d.students); setPage(0);
       setSuccess(`Loaded ${r.total_students} dummy students.`);
