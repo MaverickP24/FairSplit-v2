@@ -8,10 +8,14 @@ app = FastAPI(title="FairSplit API", version="1.0.0")
 
 # In production, set ALLOWED_ORIGINS to your Vercel frontend URL
 # e.g. "https://fairsplit.vercel.app,http://localhost:5173"
-allowed_origins = os.getenv(
-    "ALLOWED_ORIGINS",
-    "http://localhost:5173,http://localhost:3000",
-).split(",")
+allowed_origins = [
+    origin.strip()
+    for origin in os.getenv(
+        "ALLOWED_ORIGINS",
+        "http://localhost:5173,http://localhost:3000",
+    ).split(",")
+    if origin.strip()
+]
 
 app.add_middleware(
     CORSMiddleware,
@@ -27,4 +31,4 @@ for r in [ingest, survey, allocate, metrics, dummy]:
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok"}
+    return {"status": "ok", "cors_origins": allowed_origins}
