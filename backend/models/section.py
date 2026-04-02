@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, List, Set, TYPE_CHECKING
+from typing import List, Set, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .student import Student
@@ -7,9 +7,9 @@ if TYPE_CHECKING:
 
 @dataclass
 class Section:
-    name: str                              # e.g. "A", "B", "C", "D", "E"
+    name: str
     members: List["Student"] = field(default_factory=list)
-    tier_set: Set[int] = field(default_factory=set)   # tiers already present
+    tier_set: Set[int] = field(default_factory=set)
 
     @property
     def size(self) -> int:
@@ -29,7 +29,6 @@ class Section:
 
     def remove(self, student: "Student") -> None:
         self.members.remove(student)
-        # Rebuild tier_set — O(n) but only called during optimization
         self.tier_set = {s.tier for s in self.members}
         student.section = None
 

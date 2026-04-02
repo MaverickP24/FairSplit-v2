@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 
 @dataclass
@@ -8,21 +8,16 @@ class Student:
     name: str
     cgpa: float
 
-    # Set by ranker
     rank: int = 0
-    tier: int = 0          # tier number (1-based)
+    tier: int = 0
     rank_points: float = 0.0
 
-    # Set by survey
+    # {enrollment: priority} where priority 1 = most wanted, weight = 11 - priority
     preferences: Dict[str, int] = field(default_factory=dict)
-    # preferences = {enrollment: priority(1-10)}
-    # priority 1 = most wanted, weight = 11 - priority
 
-    # Set by allocator
     section: Optional[str] = None
 
     def preference_weight(self, other_enrollment: str) -> float:
-        """Weight for wanting to be with another student. Higher = stronger."""
         p = self.preferences.get(other_enrollment)
         return (11 - p) if p is not None else 0.0
 

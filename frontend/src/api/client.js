@@ -1,6 +1,6 @@
-// All API calls go through Vite's proxy → http://localhost:8000
-// In production, change BASE to your deployed backend URL.
-const BASE = "/api";
+// In production, set VITE_API_URL in Vercel to your Render backend URL
+// e.g. "https://fairsplit-api.onrender.com/api"
+const BASE = import.meta.env.VITE_API_URL || "/api";
 
 async function request(path, options = {}) {
   const res = await fetch(`${BASE}${path}`, options);
@@ -12,7 +12,6 @@ async function request(path, options = {}) {
 }
 
 export const api = {
-  // Data ingestion
   ingest: (pdfFile, excelFile) => {
     const form = new FormData();
     form.append("pdf_file", pdfFile);
@@ -25,8 +24,6 @@ export const api = {
     return request("/ingest/json", { method: "POST", body: form });
   },
   getStudents: () => request("/students"),
-
-  // Survey
   submitSurvey: (enrollment, preferences) =>
     request("/survey", {
       method: "POST",
@@ -34,8 +31,6 @@ export const api = {
       body: JSON.stringify({ enrollment, preferences }),
     }),
   getSurveyStatus: () => request("/survey/status"),
-
-  // Allocation
   allocate: (mode = "balanced") =>
     request("/allocate", {
       method: "POST",
@@ -43,15 +38,12 @@ export const api = {
       body: JSON.stringify({ mode }),
     }),
   getAllocation: () => request("/allocation"),
-
-  // Metrics
   getMetrics: () => request("/metrics"),
 };
 
-// Dev helpers
 export const devApi = {
   generateRandomSurveys: (seed) =>
     request(`/survey/random?seed=${seed ?? Date.now()}`, { method: "POST" }),
-  loadDummy: (n = 576, seed) =>
+  loadDummy: (n, seed) =>
     request(`/dummy?n=${n}&seed=${seed ?? Date.now()}`, { method: "POST" }),
 };

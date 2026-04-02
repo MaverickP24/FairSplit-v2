@@ -1,4 +1,6 @@
 import json
+import os
+import tempfile
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from ..state import state
 from ..models.student import Student
@@ -14,13 +16,9 @@ async def ingest_files(
     pdf_file: UploadFile = File(...),
     excel_file: UploadFile = File(...),
 ):
-    """
-    Upload result PDF and name Excel.
-    Parses, merges, ranks students. Resets any prior allocation.
-    """
+    """Upload result PDF + name Excel. Parses, merges, ranks."""
     state.reset()
 
-    # Save uploads to temp files
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as pdf_tmp:
         pdf_tmp.write(await pdf_file.read())
         pdf_path = pdf_tmp.name
@@ -53,21 +51,17 @@ async def ingest_files(
 
     return {
         "total_students": len(ranked),
-        "warnings": warnings[:20],   # cap at 20 in response
+        "warnings": warnings[:20],
         "preview": [s.to_dict() for s in ranked[:10]],
     }
 
 
 @router.post("/ingest/json")
 async def ingest_json(file: UploadFile = File(...)):
-    """
-    Upload a single JSON file with name, enrollment_number, and sgpa.
-    Expected format: [{"name": "...", "enrollment_number": "...", "sgpa": 9.5}, ...]
-    """
+    """Upload JSON: [{name, enrollment_number, sgpa}, ...]"""
     state.reset()
     try:
-        content = await file.read()
-        data = json.loads(content)
+        data = json.loads(await file.read())
     except Exception as e:
         raise HTTPException(status_code=422, detail=f"JSON parse error: {str(e)}")
 
@@ -79,15 +73,9 @@ async def ingest_json(file: UploadFile = File(...)):
         name = item.get("name")
         enrollment = item.get("enrollment_number")
         sgpa = item.get("sgpa")
-
         if not name or not enrollment or sgpa is None:
             continue
-
-        students.append(Student(
-            name=name,
-            enrollment=enrollment,
-            cgpa=float(sgpa)
-        ))
+        students.append(Student(name=name, enrollment=enrollment, cgpa=float(sgpa)))
 
     if not students:
         raise HTTPException(status_code=422, detail="No valid student records found in JSON")
@@ -103,42 +91,9 @@ async def ingest_json(file: UploadFile = File(...)):
 
 @router.get("/students")
 def get_students():
-    """Return all ranked students."""
     if not state.students:
         raise HTTPException(status_code=404, detail="No data loaded. Call /api/ingest first.")
     return {
         "total": len(state.students),
         "students": [s.to_dict() for s in state.students],
-    }
-
-
-@router.post("/ingest/dummy")
-def ingest_dummy(n: int = 576, seed: int = 42):
-    """
-    Load dummy student data (no file upload needed).
-    Useful for development and demos.
-
-    Params:
-      n    — number of students to generate (default 576)
-      seed — random seed for reproducibility (default 42)
-    """
-    from ..utils.dummy_generator import generate_dummy_students
-
-    state.reset()
-    students = generate_dummy_students(n=n, seed=seed)
-    ranked = assign_ranks(students)
-    state.students = ranked
-
-    tier_count = ranked[-1].tier if ranked else 0
-    pts = {
-        chr(65 + i): 0 for i in range(5)
-    }  # placeholder — real pts after allocation
-
-    return {
-        "total_students": len(ranked),
-        "seed": seed,
-        "tiers": tier_count,
-        "preview": [s.to_dict() for s in ranked[:10]],
-        "message": f"Loaded {len(ranked)} dummy students. "
-                   f"Run POST /api/allocate to assign sections.",
     }

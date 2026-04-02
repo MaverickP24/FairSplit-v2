@@ -1,4 +1,3 @@
-// Shared UI primitives used across all pages
 import { useState } from "react";
 
 export function Card({ children, style = {} }) {
@@ -6,9 +5,7 @@ export function Card({ children, style = {} }) {
     <div style={{
       background: "var(--color-background-secondary)",
       border: "1px solid var(--color-border-tertiary)",
-      borderRadius: 12,
-      padding: 20,
-      ...style,
+      borderRadius: 12, padding: 20, ...style,
     }}>
       {children}
     </div>
@@ -31,8 +28,7 @@ export function Badge({ children, color = "gray" }) {
     <span style={{
       background: p.bg, color: p.text,
       borderRadius: 5, padding: "2px 8px",
-      fontSize: 11, fontWeight: 500,
-      display: "inline-block",
+      fontSize: 11, fontWeight: 500, display: "inline-block",
     }}>
       {children}
     </span>
@@ -41,18 +37,17 @@ export function Badge({ children, color = "gray" }) {
 
 export function Alert({ type = "error", children }) {
   const styles = {
-    error:   { bg: "var(--color-background-danger)",   text: "var(--color-text-danger)" },
-    success: { bg: "var(--color-background-success)",  text: "var(--color-text-success)" },
-    info:    { bg: "var(--color-background-info)",     text: "var(--color-text-info)" },
-    warning: { bg: "var(--color-background-warning)",  text: "var(--color-text-warning)" },
+    error:   { bg: "var(--color-background-danger)",  text: "var(--color-text-danger)" },
+    success: { bg: "var(--color-background-success)", text: "var(--color-text-success)" },
+    info:    { bg: "var(--color-background-info)",    text: "var(--color-text-info)" },
+    warning: { bg: "var(--color-background-warning)", text: "var(--color-text-warning)" },
   };
   const s = styles[type] || styles.error;
   return (
     <div style={{
       background: s.bg, color: s.text,
       padding: "11px 16px", borderRadius: 8,
-      fontSize: 13, lineHeight: 1.5,
-      marginBottom: 16,
+      fontSize: 13, lineHeight: 1.5, marginBottom: 16,
     }}>
       {children}
     </div>
@@ -61,17 +56,18 @@ export function Alert({ type = "error", children }) {
 
 export function Btn({ children, onClick, disabled, variant = "primary", size = "md", style = {} }) {
   const base = {
-    borderRadius: 8, border: "none", cursor: disabled ? "not-allowed" : "pointer",
+    borderRadius: 8, border: "none",
+    cursor: disabled ? "not-allowed" : "pointer",
     fontWeight: 500, transition: "opacity .15s",
     opacity: disabled ? 0.5 : 1,
     fontSize: size === "sm" ? 12 : size === "lg" ? 15 : 13,
     padding: size === "sm" ? "5px 12px" : size === "lg" ? "10px 28px" : "7px 18px",
   };
   const variants = {
-    primary:  { background: "#1D9E75", color: "#fff" },
-    secondary:{ background: "var(--color-background-primary)", color: "var(--color-text-primary)", border: "1px solid var(--color-border-secondary)" },
-    ghost:    { background: "transparent", color: "var(--color-text-secondary)", border: "1px dashed var(--color-border-secondary)" },
-    danger:   { background: "#E24B4A", color: "#fff" },
+    primary:   { background: "#1D9E75", color: "#fff" },
+    secondary: { background: "var(--color-background-primary)", color: "var(--color-text-primary)", border: "1px solid var(--color-border-secondary)" },
+    ghost:     { background: "transparent", color: "var(--color-text-secondary)", border: "1px dashed var(--color-border-secondary)" },
+    danger:    { background: "#E24B4A", color: "#fff" },
   };
   return (
     <button onClick={onClick} disabled={disabled} style={{ ...base, ...variants[variant], ...style }}>
@@ -83,8 +79,7 @@ export function Btn({ children, onClick, disabled, variant = "primary", size = "
 export function Skeleton({ width = "100%", height = 16, radius = 6, style = {} }) {
   return (
     <div style={{
-      width, height,
-      borderRadius: radius,
+      width, height, borderRadius: radius,
       background: "var(--color-border-tertiary)",
       animation: "pulse 1.4s ease-in-out infinite",
       ...style,
@@ -107,13 +102,12 @@ export function SkeletonTable({ rows = 8, cols = 6 }) {
   );
 }
 
-export function StatCard({ label, value, unit = "", sub, color = "default" }) {
+export function StatCard({ label, value, unit = "", sub }) {
   return (
     <div style={{
       background: "var(--color-background-secondary)",
       border: "1px solid var(--color-border-tertiary)",
-      borderRadius: 12, padding: "16px 20px",
-      flex: "1 1 160px",
+      borderRadius: 12, padding: "16px 20px", flex: "1 1 160px",
     }}>
       <div style={{ fontSize: 11, color: "var(--color-text-tertiary)", marginBottom: 6, textTransform: "uppercase", letterSpacing: ".04em" }}>
         {label}
@@ -142,34 +136,27 @@ export function InfoTip({ text }) {
       onMouseEnter={() => setShow(true)}
       onMouseLeave={() => setShow(false)}
     >
-      <span
-        style={{
-          width: 16, height: 16, borderRadius: "50%",
-          background: "var(--color-border-secondary)",
-          color: "var(--color-text-secondary)",
-          fontSize: 10, fontWeight: 700, lineHeight: "16px",
-          textAlign: "center", cursor: "help",
-          display: "inline-block", userSelect: "none",
-          transition: "background .15s, color .15s",
-          ...(show ? { background: "#1D9E75", color: "#fff" } : {}),
-        }}
-      >
-        i
-      </span>
+      <span style={{
+        width: 16, height: 16, borderRadius: "50%",
+        background: show ? "#1D9E75" : "var(--color-border-secondary)",
+        color: show ? "#fff" : "var(--color-text-secondary)",
+        fontSize: 10, fontWeight: 700, lineHeight: "16px",
+        textAlign: "center", cursor: "help",
+        display: "inline-block", userSelect: "none",
+        transition: "background .15s, color .15s",
+      }}>i</span>
       {show && (
-        <span
-          style={{
-            position: "absolute", bottom: "calc(100% + 8px)", left: "50%",
-            transform: "translateX(-50%)",
-            background: "#1a1a18", color: "#e8e6df",
-            fontSize: 12, lineHeight: 1.5, fontWeight: 400,
-            padding: "10px 14px", borderRadius: 10,
-            width: 260, whiteSpace: "normal",
-            boxShadow: "0 8px 24px rgba(0,0,0,.35)",
-            zIndex: 100, pointerEvents: "none",
-            border: "1px solid var(--color-border-secondary)",
-          }}
-        >
+        <span style={{
+          position: "absolute", bottom: "calc(100% + 8px)", left: "50%",
+          transform: "translateX(-50%)",
+          background: "#1a1a18", color: "#e8e6df",
+          fontSize: 12, lineHeight: 1.5, fontWeight: 400,
+          padding: "10px 14px", borderRadius: 10,
+          width: 260, whiteSpace: "normal",
+          boxShadow: "0 8px 24px rgba(0,0,0,.35)",
+          zIndex: 100, pointerEvents: "none",
+          border: "1px solid var(--color-border-secondary)",
+        }}>
           {text}
           <span style={{
             position: "absolute", top: "100%", left: "50%",

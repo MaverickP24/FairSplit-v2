@@ -7,17 +7,9 @@ router = APIRouter()
 
 @router.get("/metrics")
 def get_metrics(include_baseline: bool = True):
-    """
-    Returns all evaluation metrics for the current allocation.
-    Optionally includes baseline (random allocation) comparison.
-    """
     if not state.allocation_done:
         raise HTTPException(status_code=404, detail="No allocation computed yet.")
-
     metrics = compute_metrics(state.students, state.sections)
-
     if include_baseline:
-        baseline = compute_baseline_metrics(state.students)
-        metrics.update(baseline)
-
+        metrics.update(compute_baseline_metrics(state.students))
     return metrics

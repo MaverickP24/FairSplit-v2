@@ -13,24 +13,21 @@ const PAGES = [
 ];
 
 export default function App() {
-  const [page,setPage] = useState("rank");
-  const [progress,setProgress] = useState({ dataLoaded:false, surveyOpen:false, allocated:false });
+  const [page, setPage] = useState("rank");
+  const [progress, setProgress] = useState({ dataLoaded: false, surveyOpen: false, allocated: false });
 
-  // Poll progress state so nav dots stay accurate
   useEffect(() => {
     const check = async () => {
       try {
         const [students, survey, alloc] = await Promise.allSettled([
-          api.getStudents(),
-          api.getSurveyStatus(),
-          api.getAllocation(),
+          api.getStudents(), api.getSurveyStatus(), api.getAllocation(),
         ]);
         setProgress({
-          dataLoaded: students.status==="fulfilled" && students.value.total > 0,
-          surveyOpen: survey.status==="fulfilled"   && survey.value.submitted > 0,
-          allocated:  alloc.status==="fulfilled",
+          dataLoaded: students.status === "fulfilled" && students.value.total > 0,
+          surveyOpen: survey.status === "fulfilled" && survey.value.submitted > 0,
+          allocated:  alloc.status === "fulfilled",
         });
-      } catch(_){}
+      } catch (_) {}
     };
     check();
     const t = setInterval(check, 8000);
@@ -38,74 +35,70 @@ export default function App() {
   }, [page]);
 
   const stepDone = (step) => {
-    if (step===1) return progress.dataLoaded;
-    if (step===2) return progress.surveyOpen;
-    if (step===3) return progress.allocated;
-    if (step===4) return progress.allocated;
-    return false;
+    if (step === 1) return progress.dataLoaded;
+    if (step === 2) return progress.surveyOpen;
+    return progress.allocated;
   };
 
   const renderPage = () => {
-    switch(page) {
-      case "rank":       return <RankDashboard/>;
-      case "survey":     return <SurveyPage/>;
-      case "simulation": return <SimulationPage/>;
-      case "metrics":    return <MetricsDashboard/>;
-      default:           return <RankDashboard/>;
+    switch (page) {
+      case "survey":     return <SurveyPage />;
+      case "simulation": return <SimulationPage />;
+      case "metrics":    return <MetricsDashboard />;
+      default:           return <RankDashboard />;
     }
   };
 
   return (
-    <div style={{minHeight:"100vh",background:"var(--color-background-tertiary,#f5f5f3)"}}>
+    <div style={{ minHeight: "100vh", background: "var(--color-background-tertiary,#f5f5f3)" }}>
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: var(--font-sans, system-ui, sans-serif); }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
       `}</style>
 
-      <nav style={{background:"var(--color-background-primary)",
-        borderBottom:"1px solid var(--color-border-tertiary)",
-        padding:"0 24px",display:"flex",alignItems:"center",height:54,gap:2}}>
-
-        {/* Brand */}
-        <div style={{marginRight:28,display:"flex",alignItems:"center",gap:8}}>
-          <div style={{width:28,height:28,borderRadius:8,background:"#1D9E75",
-            display:"flex",alignItems:"center",justifyContent:"center",
-            color:"#fff",fontWeight:600,fontSize:14}}>F</div>
-          <span style={{fontWeight:500,fontSize:15,color:"var(--color-text-primary)"}}>FairSplit</span>
+      <nav style={{
+        background: "var(--color-background-primary)",
+        borderBottom: "1px solid var(--color-border-tertiary)",
+        padding: "0 24px", display: "flex", alignItems: "center", height: 54, gap: 2,
+      }}>
+        <div style={{ marginRight: 28, display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{
+            width: 28, height: 28, borderRadius: 8, background: "#1D9E75",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            color: "#fff", fontWeight: 600, fontSize: 14,
+          }}>F</div>
+          <span style={{ fontWeight: 500, fontSize: 15, color: "var(--color-text-primary)" }}>FairSplit</span>
         </div>
 
-        {/* Nav items */}
-        {PAGES.map((p,i) => {
+        {PAGES.map((p) => {
           const active = page === p.id;
-          const done   = stepDone(p.step);
+          const done = stepDone(p.step);
           return (
-            <button key={p.id} onClick={()=>setPage(p.id)} style={{
-              display:"flex",alignItems:"center",gap:6,
-              padding:"6px 14px",borderRadius:6,border:"none",
-              background:active?"var(--color-background-secondary)":"transparent",
-              color:active?"var(--color-text-primary)":"var(--color-text-secondary)",
-              fontWeight:active?500:400,fontSize:13,cursor:"pointer",
-              borderBottom:active?"2px solid #1D9E75":"2px solid transparent",
-              borderRadius:active?"6px 6px 0 0":6,
-              transition:"color .15s,background .15s",
+            <button key={p.id} onClick={() => setPage(p.id)} style={{
+              display: "flex", alignItems: "center", gap: 6,
+              padding: "6px 14px", border: "none",
+              background: active ? "var(--color-background-secondary)" : "transparent",
+              color: active ? "var(--color-text-primary)" : "var(--color-text-secondary)",
+              fontWeight: active ? 500 : 400, fontSize: 13, cursor: "pointer",
+              borderBottom: active ? "2px solid #1D9E75" : "2px solid transparent",
+              borderRadius: active ? "6px 6px 0 0" : 6,
+              transition: "color .15s, background .15s",
             }}>
-              {/* Step dot */}
               <span style={{
-                width:7,height:7,borderRadius:"50%",flexShrink:0,
-                background:done?"#1D9E75":active?"#888780":"var(--color-border-secondary)",
-                transition:"background .3s",
-              }}/>
+                width: 7, height: 7, borderRadius: "50%", flexShrink: 0,
+                background: done ? "#1D9E75" : active ? "#888780" : "var(--color-border-secondary)",
+                transition: "background .3s",
+              }} />
               {p.label}
             </button>
           );
         })}
 
-        {/* Progress hint */}
-        <div style={{marginLeft:"auto",fontSize:12,color:"var(--color-text-tertiary)",display:"flex",gap:10}}>
-          {progress.dataLoaded && <span style={{color:"var(--color-text-success)"}}>✓ Data</span>}
-          {progress.surveyOpen && <span style={{color:"var(--color-text-success)"}}>✓ Survey</span>}
-          {progress.allocated  && <span style={{color:"var(--color-text-success)"}}>✓ Allocated</span>}
+        <div style={{ marginLeft: "auto", fontSize: 12, color: "var(--color-text-tertiary)", display: "flex", gap: 10 }}>
+          {progress.dataLoaded && <span style={{ color: "var(--color-text-success)" }}>✓ Data</span>}
+          {progress.surveyOpen && <span style={{ color: "var(--color-text-success)" }}>✓ Survey</span>}
+          {progress.allocated  && <span style={{ color: "var(--color-text-success)" }}>✓ Allocated</span>}
           {!progress.dataLoaded && <span>Step 1: load data</span>}
         </div>
       </nav>

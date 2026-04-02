@@ -14,25 +14,11 @@ class AllocateRequest(BaseModel):
 
 @router.post("/allocate")
 def run_allocation(request: AllocateRequest = AllocateRequest()):
-    """
-    Run the full allocation pipeline:
-      1. Snake-draft (deterministic, one-per-tier-per-section guaranteed)
-      2. Friendship optimization pass (constraint-safe swaps only)
-
-    In strict mode: friendship pass still runs but only accepts swaps where
-    rank_points delta remains exactly 0 (which it always does since we only
-    swap same-tier students — so strict vs balanced only matters if you later
-    add cross-tier swapping).
-
-    Always deterministic — same input always produces same output.
-    """
+    """Snake-draft → friendship optimization. Deterministic for same input."""
     if not state.students:
         raise HTTPException(status_code=404, detail="No student data loaded. Call /api/ingest first.")
 
-    # Phase 1: snake draft
     sections = snake_draft(state.students)
-
-    # Phase 2: friendship pass
     opt_stats = run_friendship_pass(state.students, sections, mode=request.mode)
 
     state.sections = sections
@@ -50,9 +36,8 @@ def run_allocation(request: AllocateRequest = AllocateRequest()):
 
 @router.get("/allocation")
 def get_allocation():
-    """Retrieve the last computed allocation."""
     if not state.allocation_done:
-        raise HTTPException(status_code=404, detail="No allocation computed yet. Call /api/allocate first.")
+        raise HTTPException(status_code=404, detail="No allocation computed yet.")
     return {
         "sections": [s.to_dict() for s in state.sections],
         "rank_point_totals": {s.name: round(s.total_rank_points, 2) for s in state.sections},

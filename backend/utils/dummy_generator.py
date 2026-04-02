@@ -1,12 +1,3 @@
-"""
-Dummy data generator
---------------------
-Generates N students with random CGPAs (uniform 4.0–10.0).
-Used for development and testing when real PDF/Excel data is not available.
-
-Produces realistic-looking enrollment numbers and names.
-Seed is fixed so results are reproducible across runs.
-"""
 import random
 from typing import List
 from ..models.student import Student
@@ -31,24 +22,12 @@ LAST_NAMES = [
 
 
 def generate_dummy_students(n: int = 576, seed: int = 42) -> List[Student]:
-    """
-    Generate n students with random CGPAs.
-    Enrollment format: 20210XXXXX (10 digits, year prefix 2021).
-    """
     rng = random.Random(seed)
-    students = []
-
-    for i in range(n):
-        first = rng.choice(FIRST_NAMES)
-        last = rng.choice(LAST_NAMES)
-        name = f"{first} {last}"
-        enrollment = f"2021{str(1000 + i).zfill(5)}"   # e.g. 2021001000
-        cgpa = round(rng.uniform(4.0, 10.0), 2)
-
-        students.append(Student(
-            enrollment=enrollment,
-            name=name,
-            cgpa=cgpa,
-        ))
-
-    return students
+    return [
+        Student(
+            enrollment=f"2021{str(1000 + i).zfill(5)}",
+            name=f"{rng.choice(FIRST_NAMES)} {rng.choice(LAST_NAMES)}",
+            cgpa=round(rng.uniform(4.0, 10.0), 2),
+        )
+        for i in range(n)
+    ]

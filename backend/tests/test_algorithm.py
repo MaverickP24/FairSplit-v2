@@ -14,9 +14,8 @@ from backend.core.allocator import snake_draft, NUM_SECTIONS
 from backend.core.optimizer import run_friendship_pass, _can_swap
 from backend.core.evaluator import compute_metrics
 
-# ─────────────────────────────────────────────
+
 # Helpers
-# ─────────────────────────────────────────────
 
 def make_students(n: int) -> list:
     """Generate n students with deterministic CGPAs."""
@@ -48,9 +47,8 @@ def section_map(sections: list) -> dict:
     return {s.name: s for s in sections}
 
 
-# ─────────────────────────────────────────────
 # Test 1: Ranker
-# ─────────────────────────────────────────────
+
 
 def test_ranker_determinism():
     """Same input always produces same ranking."""

@@ -1,10 +1,7 @@
-"""
-In-memory state store.
-In production, replace with Redis or a database.
-"""
-from typing import Dict, List, Optional
+from typing import Dict, List
 from .models.student import Student
 from .models.section import Section
+
 
 class AppState:
     def __init__(self):
@@ -19,5 +16,6 @@ class AppState:
 
     def student_map(self) -> Dict[str, Student]:
         return {s.enrollment: s for s in self.students}
+
 
 state = AppState()
